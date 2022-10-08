@@ -2,6 +2,7 @@ import argparse
 import sys
 import os
 import time
+from pathlib import Path
 
 import tweepy
 import logging
@@ -10,11 +11,13 @@ from logging.handlers import RotatingFileHandler
 logger = logging.getLogger("tweepy")
 
 
-def setup_log():
+def setup_log(args):
+    path = args.path + "/logs"
+    Path(path).mkdir(parents=True, exist_ok=True)
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s\t%(levelname)s\t%(message)s", "%Y-%m-%d %H:%M:%S")
     #file_handler = logging.FileHandler(filename="logs/twit.log")
-    file_handler = RotatingFileHandler(filename="logs/twit.log", maxBytes=67108864, backupCount=1500)
+    file_handler = RotatingFileHandler(filename=path + "/twit.log", maxBytes=67108864, backupCount=1500)
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
@@ -36,10 +39,9 @@ def build_api(args):
     return tweepy.API(auth)
 
 
-data_file = "data/dataset.csv"
 
 
-def append_to_dataset(tweet):
+def append_to_dataset(tweet, data_file):
     s = "\t".join(["none" if k is None else str(k).replace("\n", " ").replace("\t", " ") for k in tweet])
     with open(data_file, "a") as f:
         f.write(s + "\n")
@@ -69,6 +71,10 @@ def extract_from_tweet(item):
 
 
 def retrieve(args):
+    path = args.path + "/data"
+    Path(path).mkdir(parents=True, exist_ok=True)
+    data_file = path + "/dataset.csv"
+    logger.info("data path = {}".format(data_file))
     last_id = args.last_id
     if last_id is None:
         last_id = sys.maxsize
@@ -89,7 +95,7 @@ def retrieve(args):
                 logger.debug("Retrieved item is {}".format(item))
                 try:
                     tweet = extract_from_tweet(item)
-                    append_to_dataset(tweet)
+                    append_to_dataset(tweet, data_file)
                 except Exception as ex:
                     logger.error("Error {} occurred for item {}".format(ex, item))
                 j += 1
@@ -126,7 +132,11 @@ if __name__ == "__main__":
                         default=os.getenv("access_token"))
     parser.add_argument('--access_token_secret', dest='access_token_secret', type=str,
                         help='API Auth access_token_secret', default=os.getenv("access_token_secret"))
+    parser.add_argument('--path', dest='path', type=str, help='Output Path', default=".")
     args = parser.parse_args()
 
-    setup_log()
+    setup_log(args)
+
+    logger.info("args = {}".format(args))
+
     retrieve(args)

@@ -13,4 +13,5 @@ COPY . ${FUNCTION_DIR}
 
 WORKDIR ${FUNCTION_DIR}
 
-CMD [ "python", "-m", "gatherer" ]
+#CMD [ "python", "-m", "gatherer" ]
+ENTRYPOINT [ "python", "./gatherer.py" ]

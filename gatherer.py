@@ -115,7 +115,7 @@ def retrieve(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--last_id', dest='last_id', type=int, help='Last tweet ID')
-    parser.add_argument('--page_size', dest='page_size', type=int, help='Number of tweets in each request', default=5)
+    parser.add_argument('--page_size', dest='page_size', type=int, help='Number of tweets in each request', default=2500)
     parser.add_argument('--page_count', dest='page_count', type=int, help='Number of pages')
     parser.add_argument('--sleep', dest='sleep', type=int, help='Time to sleep between iterations (in second)', default=900)
     parser.add_argument('--consumer_key', dest='consumer_key', type=str, help='API Auth consumer_key',

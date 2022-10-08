@@ -42,7 +42,7 @@ def build_api(args):
 
 
 def append_to_dataset(tweet, data_file):
-    s = "\t".join(["none" if k is None else str(k).replace("\n", " ").replace("\t", " ") for k in tweet])
+    s = "\t".join(["none" if k is None else str(k).replace("\n", " ").replace("\t", " ").replace("\r", " ").replace("  ", " ") for k in tweet])
     with open(data_file, "a") as f:
         f.write(s + "\n")
 

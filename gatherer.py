@@ -104,11 +104,6 @@ def retrieve(args):
         except Exception as ex:
             logger.error("Error {} occurred at iteration {}".format(ex, i))
             logger.info("Finish, last_id = {}".format(last_id))
-            break
-        else:
-            if not has_item:
-                logger.info("Finish, last_id = {}".format(last_id))
-                break
         i = i + 1
         if args.page_count is not None and i > args.page_count:
             logger.info("Finish, last_id = {}".format(last_id))

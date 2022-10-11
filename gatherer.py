@@ -16,11 +16,11 @@ def setup_log(args):
     Path(path).mkdir(parents=True, exist_ok=True)
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter("%(asctime)s\t%(levelname)s\t%(message)s", "%Y-%m-%d %H:%M:%S")
-    #file_handler = logging.FileHandler(filename="logs/twit.log")
-    file_handler = RotatingFileHandler(filename=path + "/twit.log", maxBytes=16777216, backupCount=6000)
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    # file_handler = logging.FileHandler(filename="logs/twit.log")
+    # file_handler = RotatingFileHandler(filename=path + "/twit.log", maxBytes=16777216, backupCount=6000)
+    # file_handler.setLevel(logging.INFO)
+    # file_handler.setFormatter(formatter)
+    # logger.addHandler(file_handler)
     shell_handler = logging.StreamHandler()
     shell_handler.setFormatter(formatter)
     shell_handler.setLevel(logging.INFO)
@@ -39,12 +39,22 @@ def build_api(args):
     return tweepy.API(auth)
 
 
+appended = []
+
+
+def write_appended(data_file):
+    with open(data_file, "a") as f:
+        f.write("\n".join(appended) + "\n")
+        appended.clear()
 
 
 def append_to_dataset(tweet, data_file):
-    s = "\t".join(["none" if k is None else str(k).replace("\n", " ").replace("\t", " ").replace("\r", " ").replace("  ", " ") for k in tweet])
-    with open(data_file, "a") as f:
-        f.write(s + "\n")
+    s = "\t".join(
+        ["none" if k is None else str(k).replace("\n", " ").replace("\t", " ").replace("\r", " ").replace("  ", " ") for
+         k in tweet])
+    appended.append(s)
+    if len(appended) > 100:
+        write_appended(data_file)
 
 
 def extract_from_tweet(item):
@@ -116,9 +126,11 @@ def retrieve(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--last_id', dest='last_id', type=int, help='Last tweet ID')
-    parser.add_argument('--page_size', dest='page_size', type=int, help='Number of tweets in each request', default=2500)
+    parser.add_argument('--page_size', dest='page_size', type=int, help='Number of tweets in each request',
+                        default=2500)
     parser.add_argument('--page_count', dest='page_count', type=int, help='Number of pages')
-    parser.add_argument('--sleep', dest='sleep', type=int, help='Time to sleep between iterations (in second)', default=900)
+    parser.add_argument('--sleep', dest='sleep', type=int, help='Time to sleep between iterations (in second)',
+                        default=900)
     parser.add_argument('--consumer_key', dest='consumer_key', type=str, help='API Auth consumer_key',
                         default=os.getenv("consumer_key"))
     parser.add_argument('--consumer_secret', dest='consumer_secret', type=str, help='API Auth consumer_secret',

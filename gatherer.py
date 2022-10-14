@@ -76,7 +76,8 @@ def extract_from_tweet(item):
         item.in_reply_to_user_id,
         item.retweet_count,
         item.source,
-        item.geo
+        item.geo,
+        item.retweeted_status.id if hasattr(item, "retweeted_status") else None
     ]
 
 
@@ -94,13 +95,11 @@ def retrieve(args):
     j = 0
     api = build_api(args)
     while True:
-        has_item = False
         logger.info("Retrieve new set with last_id = {}".format(last_id))
         try:
             for item in tweepy.Cursor(api.search_tweets, q, max_id=last_id, tweet_mode='extended').items(
                     args.page_size):
                 last_id = min(last_id, item.id - 1)
-                has_item = True
                 logger.info("Retrieve item {}, iteration = {}, id = {}".format(j, i, item.id))
                 logger.debug("Retrieved item is {}".format(item))
                 try:
@@ -130,7 +129,7 @@ if __name__ == "__main__":
                         default=2500)
     parser.add_argument('--page_count', dest='page_count', type=int, help='Number of pages')
     parser.add_argument('--sleep', dest='sleep', type=int, help='Time to sleep between iterations (in second)',
-                        default=900)
+                        default=300)
     parser.add_argument('--consumer_key', dest='consumer_key', type=str, help='API Auth consumer_key',
                         default=os.getenv("consumer_key"))
     parser.add_argument('--consumer_secret', dest='consumer_secret', type=str, help='API Auth consumer_secret',

@@ -90,7 +90,7 @@ def retrieve(args):
     if last_id is None:
         last_id = sys.maxsize
     logger.info("Start with last_id = {}".format(last_id))
-    q = "#mahsa_amini OR #mahsaamini OR #مهسا_امینی"
+    q = "(#mahsa_amini OR #mahsaamini OR #مهسا_امینی) AND (-filter:retweets AND -filter:replies)"
     i = 1
     j = 0
     api = build_api(args)

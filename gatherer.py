@@ -81,12 +81,18 @@ def extract_from_tweet(item, archive=True):
             item.retweeted_status.id if hasattr(item, "retweeted_status") else None
         ]
     else:
+        no_ref = item.referenced_tweets is None or not len(item.referenced_tweets)
         return [
             item.id,
             item.author_id,
             item.created_at,
             item.lang,
             item.source,
+            None if no_ref else item.referenced_tweets[0].type,
+            None if no_ref else item.referenced_tweets[0].id,
+            None if item.public_metrics is None else item.public_metrics['retweet_count'],
+            None if (item.entities is None or "hashtags" not in item.entities) else ",".join(
+                [h["tag"] for h in item.entities["hashtags"]]),
             item.text
         ]
 
@@ -141,29 +147,26 @@ def stream(args):
     data_file = set_path(args)
 
     class MyStreamListener(tweepy.StreamingClient):
-        def __init__(self, bearer_token):
-            super().__init__(bearer_token)
+        def __init__(self, bearer_token, **kwargs):
+            super().__init__(bearer_token, wait_on_rate_limit=True, **kwargs)
             self.i = 0
+
         def on_tweet(self, item):
             try:
+                self.i += 1
+                logger.info("Stream append i = {}, id = {}".format(self.i, item.id))
                 tweet = extract_from_tweet(item, False)
                 append_to_dataset(tweet, data_file)
             except Exception as ex:
                 logger.error("Error {} occurred for item {}".format(ex, item))
-            self.i += 1
-            logger.info("Stream i = {}, id = {}".format(self.i, item.id))
 
         def on_errors(self, status_code):
             logger.error("Error {} occurred".format(status_code))
             return False
 
-    # stream = MyStreamListener(args.consumer_key, args.consumer_secret, args.access_token, args.access_token_secret)
-    # stream.filter(track=["#mahsa_amini", "#mahsaamini", "#مهسا_امینی"])
-    # print(stream.sample())
-
     client = MyStreamListener(args.bearer)
     client.add_rules([tweepy.StreamRule("#mahsa_amini OR #mahsaamini OR #مهسا_امینی")])
-    client.filter(threaded=True, tweet_fields=["author_id", "created_at","source","id","lang","text"])
+    client.filter(threaded=True, tweet_fields=["author_id", "created_at", "source", "id", "lang", "text", "entities", "referenced_tweets", "public_metrics"])
 
 
 if __name__ == "__main__":
